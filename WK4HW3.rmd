@@ -1,6 +1,39 @@
 
-
 ```{r}
-#hello world
+
+library(sf)
+library(tidyverse)
+library(dplyr)
+
+GII <- read.csv(file.choose())
+Countries <-  st_read(file.choose())
+
+GII <- GII[, c("Table.5..Gender.Inequality.Index", "X.1", "X.3")]
+GII <- GII[-c(1,2,3,4,5,6,7),]
+names(GII)[names(GII) %in% c("Table.5..Gender.Inequality.Index", "X.1", "X.3")] <- c("COUNTRY", "Inequality_Index", "Rank")
+
+Joined <- left_join(GII, Countries, by="COUNTRY")
+
 ```
 
+```{r}
+
+library(tmap)
+
+tmap_mode("plot")
+
+
+tm_shape(Joined2) +
+  tm_polygons("Inequality_Index",          
+              palette = "viridis",         
+              title = "Inequality Index",
+              style = "quantile") +         
+  tm_layout(title = "Global Inequality by Country",
+            legend.outside = TRUE)
+
+Joined2 <- Countries %>% 
+  left_join(GII, by = "COUNTRY")
+
+
+
+```
