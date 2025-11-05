@@ -51,7 +51,4 @@ Map <- tm_shape(GII_Spatial) +
   tm_title("Difference in GII between 2010 and 2019",
   )
 
-
-Map
-
 ```
