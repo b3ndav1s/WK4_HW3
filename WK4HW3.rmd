@@ -1,39 +1,57 @@
 
 ```{r}
 
+#Libraries and data read-in
+
+library(readr)
 library(sf)
 library(tidyverse)
+library(here)
 library(dplyr)
 
-GII <- read.csv(file.choose())
-Countries <-  st_read(file.choose())
+Geometries <- st_read(here("World_Countries.geojson"))
+Geometries <- Geometries %>% 
+  select("COUNTRY", "geometry")
 
-GII <- GII[, c("Table.5..Gender.Inequality.Index", "X.1", "X.3")]
-GII <- GII[-c(1,2,3,4,5,6,7),]
-names(GII)[names(GII) %in% c("Table.5..Gender.Inequality.Index", "X.1", "X.3")] <- c("COUNTRY", "Inequality_Index", "Rank")
-
-Joined <- left_join(GII, Countries, by="COUNTRY")
+GII_raw <- read.csv(here("GII_Data.csv"))
 
 ```
 
 ```{r}
 
+#Data Manipulation + Join
+
+GII <- GII_raw %>% 
+  select("country", "gii_2010", "gii_2019") %>% 
+  mutate(gii_diff = gii_2019 - gii_2010)
+
+GII <- GII %>% 
+  rename("COUNTRY" = "country")
+
+GII_Spatial <- Geometries %>%
+  left_join(GII, by = "COUNTRY")
+
+```
+
+```{r}
+
+#Mapping
+
 library(tmap)
 
 tmap_mode("plot")
 
-
-tm_shape(Joined2) +
-  tm_polygons("Inequality_Index",          
-              palette = "viridis",         
-              title = "Inequality Index",
-              style = "quantile") +         
-  tm_layout(title = "Global Inequality by Country",
-            legend.outside = TRUE)
-
-Joined2 <- Countries %>% 
-  left_join(GII, by = "COUNTRY")
+Map <- tm_shape(GII_Spatial) +
+  tm_polygons(
+    fill = "gii_diff", 
+    palette = "viridis", 
+    fill.legend = tm.legend("Inequality Index"),
+    style = "quantile"
+  ) +
+  tm_title("Difference in GII between 2010 and 2019",
+  )
 
 
+Map
 
 ```
